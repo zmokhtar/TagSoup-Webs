@@ -83,6 +83,35 @@ public class HTMLScanner implements Scanner, Locator {
 		theLastLine = theLastColumn = theCurrentLine = theCurrentColumn = 0;
 		}
 
+
+    /**
+    Lookup the current character in the state table and properly adjust
+    theState and nextState
+    @param ch Current character in the stream
+    @returns Action that parser should take according to state table
+    */
+    protected int lookupState(int ch){
+    // Search state table
+    int action = 0;
+        for (int i = 0; i < statetable.length; i += 4) {
+        if (theState != statetable[i]) {
+            if (action != 0) break;
+            continue;
+            }
+        if (statetable[i+1] == 0) {
+            action = statetable[i+2];
+            theNextState = statetable[i+3];
+            }
+        else if (statetable[i+1] == ch) {
+            action = statetable[i+2];
+            theNextState = statetable[i+3];
+            break;
+            }
+        }
+        return action;
+    }
+
+
 	/**
 	Scan HTML source, reporting lexical events.
 	@param r0 Reader that provides characters
@@ -130,22 +159,8 @@ public class HTMLScanner implements Scanner, Locator {
 			if (!(ch >= 0x20 || ch == '\n' || ch == '\t' || ch == -1)) continue;
 
 			// Search state table
-			int action = 0;
-			for (int i = 0; i < statetable.length; i += 4) {
-				if (theState != statetable[i]) {
-					if (action != 0) break;
-					continue;
-					}
-				if (statetable[i+1] == 0) {
-					action = statetable[i+2];
-					theNextState = statetable[i+3];
-					}
-				else if (statetable[i+1] == ch) {
-					action = statetable[i+2];
-					theNextState = statetable[i+3];
-					break;
-					}
-				}
+			int action = lookupState(ch);
+
 //			System.err.println("In " + debug_statenames[theState] + " got " + nicechar(ch) + " doing " + debug_actionnames[action] + " then " + debug_statenames[theNextState]);
 			switch (action) {
 			case 0:
