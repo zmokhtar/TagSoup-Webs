@@ -245,6 +245,14 @@ public class Parser extends DefaultHandler implements ScanHandler, XMLReader, Le
 	public final static String CDATAElementsFeature =
 		"http://www.ccil.org/~cowan/tagsoup/features/cdata-elements";
 
+    /**
+    A value of true will cause the parser to ignore entities.  This means
+    that &amp; will not be interpreted by the parser and will be passed
+    through to the Document.
+    **/
+    public final static String ignoreAttributeEntitiesFeature =
+        "http://www.ccil.org/~cowan/tagsoup/features/ignore-attribute-entities";
+
 	/**
 	Used to see some syntax events that are essential in some
 	applications: comments, CDATA delimiters, selected general
@@ -304,6 +312,7 @@ public class Parser extends DefaultHandler implements ScanHandler, XMLReader, Le
 		theFeatures.put(restartElementsFeature, truthValue(DEFAULT_RESTART_ELEMENTS));
 		theFeatures.put(ignorableWhitespaceFeature, truthValue(DEFAULT_IGNORABLE_WHITESPACE));
 		theFeatures.put(CDATAElementsFeature, truthValue(DEFAULT_CDATA_ELEMENTS));
+        theFeatures.put(ignoreAttributeEntitiesFeature, Boolean.FALSE);
 		}
 
 	// Private clone of Boolean.valueOf that is guaranteed to return
@@ -543,7 +552,9 @@ public class Parser extends DefaultHandler implements ScanHandler, XMLReader, Le
 		if (theNewElement == null || theAttributeName == null) return;
 		String value = new String(buff, offset, length);
 //		System.err.println("%% Attribute value [" + value + "]");
-		value = expandEntities(value);
+        if (!getFeature(ignoreAttributeEntitiesFeature)){
+    		value = expandEntities(value);
+        }
 		theNewElement.setAttribute(theAttributeName, null, value);
 		theAttributeName = null;
 //		System.err.println("%% Aval done");
